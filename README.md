@@ -1,7 +1,7 @@
 # Pipedream
 Weird Hallucinating Loader
 
-should base of smelly_vx's feverdream and also use pipes and have 2 processes map one executable in memory
+should base of smelly_vx's feverdream and also **MAYBE** (idk if it would be bad) use pipes and have 2 processes map one executable in memory
 
 should be position independent, which also means CRT
 
