@@ -1,16 +1,33 @@
-# Pipedream
-Weird Hallucinating Loader
+<div align=center>
+   <h1>$$\text{\LARGE Pipedream}$$</h1>
+   <i><p>$$\text{Weird Hallucinating Loader}$$</p></i>
+</div>
 
-should base of smelly_vx's feverdream 
+## $$\text{About:}$$
 
-and also **MAYBE** (idk if it would be bad) use pipes and have 2 processes map one executable in memory
+Nothing special. Just a fully recursive portable executable (PE) loader written in C. 
 
-should be kinda position independent, which also means CRT
+The idea for this project popped up in my head while solving random easy Codewars 
+problems with recursion to practice for my exam, the exact thought was:
+>  I wonder how nice resolving imports & performing relocations would look if I did it using recursion...
 
-RECURSIVE REFLECTIVE LOADERRR
+And here we are.
 
-maybe use api hashing (tiger algo?) and implement weird encryption
+## $$\text{Features:}$$
+- No CRT (?)
+- Maybe API hashing (tiger??)
+- Anti-Debugging using smelly_vx's `feverdream` technique (code runs only once machine is locked)
+- Thread hidden from debugger
+- And more! ( I am too lazy to think of more and acutally implement it then )
 
-maybe maybe also find a use of a rohrschach pattern generator- perhaps obfuscation??
+<!-- and also **MAYBE** (idk if it would be bad) use pipes and have 2 processes map one executable in memory-->
+## $$\text{Tasks Left:}$$
 
-test against elastic????
+- [ ] Test out and rewrite `ResolveImport` & `PerformRelocs`
+  - [ ] Create `relocs_ctx` and `imports_ctx` structures to not pass billion parameters manually
+- [ ] Actually finish the Project
+- [ ] Test against Elastic????
+
+## $$\text{Credits:}$$
+
+Full credits go to [@smelly_vx](https://github.com/smellyvx) for his awesome feverdream technique described [here](https://vx-api.gitbook.io/vx-api/my-projects/fever-dream-code-executing-when-the-windows-machine-is-locked)
