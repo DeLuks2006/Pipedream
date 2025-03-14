@@ -5,6 +5,8 @@ should base of smelly_vx's feverdream and also **MAYBE** (idk if it would be bad
 
 should be position independent, which also means CRT
 
+RECURSIVE REFLECTIVE LOADERRR
+
 maybe use api hashing (tiger algo?) and implement weird encryption
 
 maybe maybe also find a use of a rohrschach pattern generator- perhaps obfuscation??
