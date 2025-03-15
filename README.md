@@ -5,7 +5,7 @@
 
 ## $$\text{About:}$$
 
-Nothing special. Just a fully recursive portable executable (PE) loader written in C. 
+Nothing special. Just a fully recursive portable executable (PE) loader written in C++. 
 
 The idea for this project popped up in my head while solving random easy Codewars 
 problems with recursion to practice for my exam, the exact thought was:
@@ -14,18 +14,18 @@ problems with recursion to practice for my exam, the exact thought was:
 And here we are.
 
 ## $$\text{Features:}$$
-- No CRT (?)
-- Maybe API hashing (tiger??)
-- Anti-Debugging using smelly_vx's `feverdream` technique (code runs only once machine is locked)
-- Thread hidden from debugger
+- No CRT (?) <- in progress
+- Maybe API hashing (??) <- later
+<!-- - Anti-Debugging using smelly_vx's `feverdream` technique (code runs only once machine is locked)-->
+<!-- - Thread hidden from debugger-->
 - And more! ( I am too lazy to think of more and acutally implement it then )
 
 <!-- and also **MAYBE** (idk if it would be bad) use pipes and have 2 processes map one executable in memory-->
 ## $$\text{Tasks Left:}$$
 
-- [ ] Test out and rewrite `ResolveImport` & `PerformRelocs`
-  - [ ] Create `relocs_ctx` and `imports_ctx` structures to not pass billion parameters manually
-- [ ] Actually finish the Project
+- [ ] Add NT-definitions
+- [ ] Test it out!!
+Later...
 - [ ] Test against Elastic????
 
 ## $$\text{Credits:}$$
