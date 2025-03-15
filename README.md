@@ -5,7 +5,7 @@
 
 ## $$\text{About:}$$
 
-Nothing special. Just a fully recursive portable executable (PE) loader written in C++. 
+Nothing special. Just a fully recursive portable executable (PE) loader written in C. 
 
 The idea for this project popped up in my head while solving random easy Codewars 
 problems with recursion to practice for my exam, the exact thought was:
@@ -15,7 +15,7 @@ And here we are.
 
 ## $$\text{Features:}$$
 - No CRT (?) <- in progress
-- Maybe API hashing (??) <- later
+- Maybe API hashing (??) <- laterrr
 <!-- - Anti-Debugging using smelly_vx's `feverdream` technique (code runs only once machine is locked)-->
 <!-- - Thread hidden from debugger-->
 - And more! ( I am too lazy to think of more and acutally implement it then )
@@ -34,6 +34,6 @@ Later...
 
 ## $$\text{Credits:}$$
 
-- Full Credits for the [feverdream technique](https://vx-api.gitbook.io/vx-api/my-projects/fever-dream-code-executing-when-the-windows-machine-is-locked) go to [@smelly_vx](https://github.com/smellyvx).
+- Full Credits for the [feverdream technique](https://vx-api.gitbook.io/vx-api/my-projects/fever-dream-code-executing-when-the-windows-machine-is-locked) go to [@smelly_vx](https://github.com/smellyvx). (this feature will be added to the project once the basic loader works :) )
 - The ASM code was stolen from [TitanLdr](https://github.com/kyleavery/TitanLdr)
 - The Linker script was stolen from the [Startdust Template](https://github.com/Cracked5pider/Stardust) (will likely be modified later)
