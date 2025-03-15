@@ -34,6 +34,6 @@ Later...
 
 ## $$\text{Credits:}$$
 
-- Full Credits for the [feverdream technique](https://vx-api.gitbook.io/vx-api/my-projects/fever-dream-code-executing-when-the-windows-machine-is-locked) go to [@smelly_vx](https://github.com/smellyvx) [here].
+- Full Credits for the [feverdream technique](https://vx-api.gitbook.io/vx-api/my-projects/fever-dream-code-executing-when-the-windows-machine-is-locked) go to [@smelly_vx](https://github.com/smellyvx).
 - The ASM code was stolen from [TitanLdr](https://github.com/kyleavery/TitanLdr)
 - The Linker script was stolen from the [Startdust Template](https://github.com/Cracked5pider/Stardust) (will likely be modified later)
