@@ -24,7 +24,11 @@ And here we are.
 ## $$\text{Tasks Left:}$$
 
 - [ ] Add NT-definitions
+- [ ] Resolve Functions using PEB
+- [ ] Implement Hash algorithm
+- [ ] Implement API-Hashing
 - [ ] Test it out!!
+
 Later...
 - [ ] Test against Elastic????
 
