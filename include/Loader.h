@@ -1,4 +1,5 @@
-#include <Windows.h>
+#pragma once
+#include "Native.h"
 
 typedef struct BASE_RELOCATION_BLOCK {
 	DWORD dwPageAddress;

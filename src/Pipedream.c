@@ -1,5 +1,5 @@
-#include "../include/PeUtils.hpp"
-#include "../include/Macros.hpp"
+#include "../include/PeUtils.h"
+#include "../include/Macros.h"
 
 typedef BOOLEAN ( WINAPI* DLLMAIN_T ) (
 	HMODULE ImageBase,
@@ -9,17 +9,17 @@ typedef BOOLEAN ( WINAPI* DLLMAIN_T ) (
 
 void Pipedream(void) {
 	// Loader Vars
-	DLLMAIN_T Ent{};
-	LPVOID pe_base{};
-	RELOC_CTX rcRelocCtx{};
-	DWORD dwOldProtect{};
+	DLLMAIN_T Ent;
+	LPVOID pe_base;
+	RELOC_CTX rcRelocCtx;
+	DWORD dwOldProtect;
 	// PE bullshit
 	PIMAGE_DOS_HEADER Dos = C_PTR( G_END(  ) );
 	PIMAGE_NT_HEADERS NtH = C_PTR( U_PTR( Dos ) + Dos->e_lfanew );
-	IMAGE_DATA_DIRECTORY import_dir{};
-	PIMAGE_IMPORT_DESCRIPTOR import_desc{};
-	SIZE_T szSizeImage{};
-	DWORD_PTR pdwDelta{};
+	IMAGE_DATA_DIRECTORY import_dir;
+	PIMAGE_IMPORT_DESCRIPTOR import_desc;
+	SIZE_T szSizeImage;
+	DWORD_PTR pdwDelta;
 	
 
 	// Calc memory for image

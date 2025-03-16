@@ -6,6 +6,8 @@ CFLAGS 	:= $(CFLAGS) -fno-ident -fpack-struct=8 -falign-functions=1
 CFLAGS  := $(CFLAGS) -s -ffunction-sections -falign-jumps=1 -w
 CFLAGS	:= $(CFLAGS) -falign-labels=1 -fPIC -Wl,-TSectionLink.ld
 LFLAGS	:= $(LFLAGS) -Wl,-s,--no-seh,--enable-stdcall-fixup
+# I added this one because recursion
+CFLAGS	:= $(CFLAGS) -foptimize-sibling-calls
 
 OUT := x64_Pipedream.exe
 BIN := x64_Pipedream.bin

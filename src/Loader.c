@@ -1,19 +1,19 @@
-#include "../include/PeUtils.hpp"
+#include "../include/Loader.h"
 
-// TODO: REWRITE THIS SO ITS RECURSIVE
-PVOID CopyMemoryEx(_Inout_ PVOID Destination, _In_ CONST PVOID Source, _In_ SIZE_T Length) {
-	PBYTE D = (PBYTE)Destination;
-	PBYTE S = (PBYTE)Source;
+PVOID pdCopyMemoryEx(PVOID Destination, PVOID Source, SIZE_T Length) {
+  if (Length == 0) {
+    return Destination;
+  }
 
-	while (Length--)
-		*D++ = *S++;
+  *(PBYTE)Destination = *(PBYTE)Source;
+  pdCopyMemoryEx((PBYTE)++Destination, (PBYTE)++Source, --Length);
 
-	return Destination;
+  return Destination;
 }
 
 void pdCopySections(PIMAGE_SECTION_HEADER shSection, DWORD dwNumSections, DWORD dwSectionsProcessed, LPVOID lpImgBase, LPVOID lpFile) {
-	LPVOID lpDestination{};
-	LPVOID lpBytes{};
+	LPVOID lpDestination;
+	LPVOID lpBytes;
 
 	if (dwNumSections == dwSectionsProcessed) {
 		return;
@@ -21,14 +21,14 @@ void pdCopySections(PIMAGE_SECTION_HEADER shSection, DWORD dwNumSections, DWORD 
 
 	lpDestination = (LPVOID)((DWORD_PTR)lpImgBase + (DWORD_PTR)shSection->VirtualAddress);
 	lpBytes = (LPVOID)((DWORD_PTR)lpFile + (DWORD_PTR)shSection->PointerToRawData);
-	CopyMemoryEx(lpDestination, lpBytes, shSection->SizeOfRawData);
+	pdCopyMemoryEx(lpDestination, lpBytes, shSection->SizeOfRawData);
 
 	pdCopySections(shSection++, dwNumSections, dwSectionsProcessed, lpImgBase, lpFile);
 }
 
 void pdRelocateBlock(PRELOC_BLOCK_CTX prbcRelocCtx) {
-	DWORD_PTR pdwRelocRVA{};
-	DWORD_PTR pdwPatchPtr{};
+	DWORD_PTR pdwRelocRVA;
+	DWORD_PTR pdwPatchPtr;
 
 	if (prbcRelocCtx->iCounter == prbcRelocCtx->dwRelocCount) {
 		return;
@@ -46,17 +46,17 @@ void pdRelocateBlock(PRELOC_BLOCK_CTX prbcRelocCtx) {
 		(LPCVOID)((DWORD_PTR)prbcRelocCtx->prcRelocCtx->lpImgBase + pdwRelocRVA),
 		&pdwPatchPtr,
 		sizeof(DWORD_PTR),
-		nullptr
+		NULL
 	);
 
 	pdwPatchPtr += prbcRelocCtx->pdwDelta;
-	CopyMemoryEx((PVOID)((DWORD_PTR)prbcRelocCtx->prcRelocCtx->lpImgBase + pdwRelocRVA), &pdwPatchPtr, sizeof(DWORD_PTR));
+	pdCopyMemoryEx((PVOID)((DWORD_PTR)prbcRelocCtx->prcRelocCtx->lpImgBase + pdwRelocRVA), &pdwPatchPtr, sizeof(DWORD_PTR));
 	
 	return pdRelocateBlock(prbcRelocCtx);
 }
 
 void pdPerformRelocs(PRELOC_CTX prcRelocCtx, DWORD_PTR pdwDelta) {
-	RELOC_BLOCK_CTX rbcRelocCtx{};
+	RELOC_BLOCK_CTX rbcRelocCtx;
 
 	if (prcRelocCtx->szRelocsProcessed == prcRelocCtx->iddRelocDir.Size) {
 		return;
@@ -76,10 +76,10 @@ void pdPerformRelocs(PRELOC_CTX prcRelocCtx, DWORD_PTR pdwDelta) {
 
 
 void pdImportFunction(LPVOID lpImgBase, HMODULE hLib, PIMAGE_THUNK_DATA tThunk) {
-	LPCSTR strFnOrdinal{};
-	PIMAGE_IMPORT_BY_NAME impFnName{};
+	LPCSTR strFnOrdinal;
+	PIMAGE_IMPORT_BY_NAME impFnName;
 
-	if (tThunk->u1.AddressOfData == NULL) {
+	if (tThunk->u1.AddressOfData == 0) {
 		return;
 	}
 
@@ -97,11 +97,11 @@ void pdImportFunction(LPVOID lpImgBase, HMODULE hLib, PIMAGE_THUNK_DATA tThunk) 
 
 
 void pdLoadImports(PIMAGE_IMPORT_DESCRIPTOR pidImportDescriptor, LPVOID lpImgBase) {
-	LPCSTR strLibName{};
-	HMODULE hLibrary{};
-	PIMAGE_THUNK_DATA tThunk{};
+	LPCSTR strLibName;
+	HMODULE hLibrary;
+	PIMAGE_THUNK_DATA tThunk;
 
-	if (pidImportDescriptor->Name == NULL) {
+	if (pidImportDescriptor->Name == '\0') {
 		return;
 	}
 
