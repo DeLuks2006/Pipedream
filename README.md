@@ -23,10 +23,10 @@ And here we are.
 <!-- and also **MAYBE** (idk if it would be bad) use pipes and have 2 processes map one executable in memory-->
 ## $$\text{Tasks Left:}$$
 
-- [ ] Implement Hash algorithm
+- [x] Implement Hash algorithm
 - [ ] Implement API-Hashing
-    - [ ] Resolve Functions using PEB
     - [ ] Add NT-definitions
+    - [ ] Resolve Functions using PEB
     - [ ] Use NtCreateSection + NtMapViewOfSection instead of VirtualAlloc
 - [ ] MAKE SURE TO TEST RAHHHHHHHHHHHHHH
 - [ ] Hide current thread from debugger
