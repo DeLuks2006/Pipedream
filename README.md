@@ -26,7 +26,7 @@ And here we are.
 - [x] Implement Hash algorithm
 - [ ] Implement API-Hashing
     - [ ] Add NT-definitions
-    - [ ] Resolve Functions using PEB
+    - [x] Resolve Functions using PEB
     - [ ] Use NtCreateSection + NtMapViewOfSection instead of VirtualAlloc
 - [ ] MAKE SURE TO TEST RAHHHHHHHHHHHHHH
 - [ ] Hide current thread from debugger
