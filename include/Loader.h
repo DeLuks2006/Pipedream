@@ -1,31 +1,42 @@
 #pragma once
 #include "Native.h"
+#include "Macros.h"
+#include "Misc.h"
 
 typedef struct BASE_RELOCATION_BLOCK {
 	DWORD dwPageAddress;
 	DWORD dwBlockSize;
-} BASE_RELOCATION_BLOCK, *PBASE_RELOCATION_BLOCK;
+} BASE_RELOCATION_BLOCK, * PBASE_RELOCATION_BLOCK;
 
 typedef struct BASE_RELOCATION_ENTRY {
 	USHORT usOffset : 12;
 	USHORT usType : 4;
-} BASE_RELOCATION_ENTRY, *PBASE_RELOCATION_ENTRY;
+} BASE_RELOCATION_ENTRY, * PBASE_RELOCATION_ENTRY;
 
 typedef struct RELOC_CTX {
 	SIZE_T szRelocsProcessed;
 	IMAGE_DATA_DIRECTORY iddRelocDir;
 	DWORD_PTR pdwRelocTable;
 	LPVOID lpImgBase;
-} RELOC_CTX, *PRELOC_CTX;
+} RELOC_CTX, * PRELOC_CTX;
 
 typedef struct RELOC_BLOCK_CTX {
+	NTSTATUS status;
+	fn_NtReadVirtualMemory pdNtReadVirtualMemory;
 	PRELOC_CTX prcRelocCtx;
 	INT iCounter;
 	DWORD dwRelocCount;
 	PBASE_RELOCATION_ENTRY preRelocEntries;
 	PBASE_RELOCATION_BLOCK prbRelocBlock;
 	DWORD_PTR pdwDelta;
-} RELOC_BLOCK_CTX, *PRELOC_BLOCK_CTX;
+} RELOC_BLOCK_CTX, * PRELOC_BLOCK_CTX;
+
+typedef struct IMPORT_CTX { /// WE LEFT OFF HERE 
+	NTSTATUS status;
+	fn_LdrLoadDll pdLdrLoadDll;
+	fn_LdrGetProcedureAddress pdLdrGetProcedureAddress;
+	fn_RtlAnsiStringToUnicodeString pdRtlAnsiStringToUnicodeString;
+} IMPORT_CTX, *PIMPORT_CTX;
 
 /// <summary>
 /// Copies the sections of a given buffer to allocated memory
@@ -53,14 +64,8 @@ void pdPerformRelocs(PRELOC_CTX prcRelocCtx, DWORD_PTR pdwDelta);
 /// <summary>
 /// Loads all imported functions from a given DLL
 /// </summary>
-/// <param name="lpImgBase">- Pointer to base address of image</param>
-/// <param name="hLib">- Handle to module from which the functions are imported</param>
-/// <param name="tThunk">- Pointer to thunk of passed image</param>
-void pdImportFunction(LPVOID lpImgBase, HMODULE hLib, PIMAGE_THUNK_DATA tThunk);
-
+void pdImportFunction(PIMPORT_CTX ctx, LPVOID lpImgBase, PVOID hLib, PIMAGE_THUNK_DATA tThunk, PIMAGE_THUNK_DATA tLookupThunk);
 /// <summary>
 /// Resolves all imported DLLs and their functions from a given image
 /// </summary>
-/// <param name="pidImportDescriptor">- Pointer to import descriptor</param>
-/// <param name="lpImgBase">- Pointer to base address of image</param>
-void pdLoadImports(PIMAGE_IMPORT_DESCRIPTOR pidImportDescriptor, LPVOID lpImgBase);
+void pdLoadImports(PIMPORT_CTX ctx, PIMAGE_IMPORT_DESCRIPTOR pidImportDescriptor, LPVOID lpImgBase);

@@ -1,5 +1,12 @@
 #pragma once
-// all these shamelessly stolen from titanldr :)
+
+#define NTDLL 0x633a87bf
+#define KRNL32 0xce70de87
+#define OPENPROC 0x5ea49a38
+#define NT_VIRTUAL_ALLOC 0xca67b978
+#define NT_VIRTUAL_PROTECT 0xbd799926
+
+// all the below shamelessly stolen from titanldr :)
 
 // get relative offset of string or pointer
 #define G_SYM( x )	( ULONG_PTR )( GetIp( ) - ( ( ULONG_PTR ) &GetIp - ( ULONG_PTR ) x ) )
@@ -15,6 +22,3 @@
 
 // cast unsigned pointer-wide type
 #define C_PTR( x )	( ( PVOID ) x )
-
-// Get end of code - Fuck 32bit btw
-#define G_END( x )	U_PTR( GetIp( ) + 11 )

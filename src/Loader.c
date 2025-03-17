@@ -1,16 +1,5 @@
 #include "../include/Loader.h"
 
-PVOID pdCopyMemoryEx(PVOID Destination, PVOID Source, SIZE_T Length) {
-  if (Length == 0) {
-    return Destination;
-  }
-
-  *(PBYTE)Destination = *(PBYTE)Source;
-  pdCopyMemoryEx((PBYTE)++Destination, (PBYTE)++Source, --Length);
-
-  return Destination;
-}
-
 void pdCopySections(PIMAGE_SECTION_HEADER shSection, DWORD dwNumSections, DWORD dwSectionsProcessed, LPVOID lpImgBase, LPVOID lpFile) {
 	LPVOID lpDestination;
 	LPVOID lpBytes;
@@ -39,19 +28,22 @@ void pdRelocateBlock(PRELOC_BLOCK_CTX prbcRelocCtx) {
 	if (prbcRelocCtx->preRelocEntries[prbcRelocCtx->iCounter].usType == 0) {
 		return pdRelocateBlock(prbcRelocCtx);
 	}
-	
+
 	pdwRelocRVA = prbcRelocCtx->prbRelocBlock->dwPageAddress + prbcRelocCtx->preRelocEntries[prbcRelocCtx->iCounter].usOffset;
-	ReadProcessMemory(
-		(HANDLE)((HANDLE)-1), // GetCurrentProcess
-		(LPCVOID)((DWORD_PTR)prbcRelocCtx->prcRelocCtx->lpImgBase + pdwRelocRVA),
+	prbcRelocCtx->status = prbcRelocCtx->pdNtReadVirtualMemory(
+		(HANDLE)((HANDLE)-1),
+		(PVOID)((DWORD_PTR)prbcRelocCtx->prcRelocCtx->lpImgBase + pdwRelocRVA),
 		&pdwPatchPtr,
 		sizeof(DWORD_PTR),
 		NULL
 	);
+	if (prbcRelocCtx->status != STATUS_SUCCESS) {
+		return;
+	}
 
 	pdwPatchPtr += prbcRelocCtx->pdwDelta;
 	pdCopyMemoryEx((PVOID)((DWORD_PTR)prbcRelocCtx->prcRelocCtx->lpImgBase + pdwRelocRVA), &pdwPatchPtr, sizeof(DWORD_PTR));
-	
+
 	return pdRelocateBlock(prbcRelocCtx);
 }
 
@@ -75,44 +67,67 @@ void pdPerformRelocs(PRELOC_CTX prcRelocCtx, DWORD_PTR pdwDelta) {
 }
 
 
-void pdImportFunction(LPVOID lpImgBase, HMODULE hLib, PIMAGE_THUNK_DATA tThunk) {
-	LPCSTR strFnOrdinal;
+void pdImportFunction(PIMPORT_CTX ctx, LPVOID lpImgBase, PVOID hLib, PIMAGE_THUNK_DATA tThunk, PIMAGE_THUNK_DATA tLookupThunk) {
 	PIMAGE_IMPORT_BY_NAME impFnName;
+	ANSI_STRING ansString;
+	LPCSTR strFnOrdinal;
+	PVOID pFunction;
 
 	if (tThunk->u1.AddressOfData == 0) {
 		return;
 	}
 
-	if (IMAGE_SNAP_BY_ORDINAL(tThunk->u1.Ordinal)) {
-		strFnOrdinal = (LPCSTR)IMAGE_ORDINAL(tThunk->u1.Ordinal);
-		tThunk->u1.Function = (DWORD_PTR)GetProcAddress(hLib, strFnOrdinal);
+	if (IMAGE_SNAP_BY_ORDINAL(tLookupThunk->u1.Ordinal)) {
+		ctx->status = ctx->pdLdrGetProcedureAddress(hLib, NULL, IMAGE_ORDINAL(tLookupThunk->u1.Ordinal), &pFunction);
+		if (ctx->status == STATUS_SUCCESS) {
+			tThunk->u1.Function = (ULONGLONG)pFunction;
+		}
 	}
 	else {
-		impFnName = (PIMAGE_IMPORT_BY_NAME)((DWORD_PTR)lpImgBase + tThunk->u1.AddressOfData);
-		tThunk->u1.Function = (DWORD_PTR)GetProcAddress(hLib, impFnName->Name);
+		impFnName = (PIMAGE_IMPORT_BY_NAME)((DWORD_PTR)lpImgBase + tLookupThunk->u1.AddressOfData);
+		RtlInitAnsiString(&ansString, impFnName->Name); // <------------------------------------------------------------------------------------ MY IMPLEMENTATION SHOULD BE HERE 
+		ctx->status = ctx->pdLdrGetProcedureAddress(hLib, &ansString, 0, &pFunction);
+		if (ctx->status == STATUS_SUCCESS) {
+			tThunk->u1.Function = (ULONGLONG)pFunction;
+		}
 	}
 
-	return pdImportFunction(lpImgBase, hLib, tThunk);
+	return pdImportFunction(ctx, lpImgBase, hLib, tThunk+1, tLookupThunk+1);
 }
 
 
-void pdLoadImports(PIMAGE_IMPORT_DESCRIPTOR pidImportDescriptor, LPVOID lpImgBase) {
+void pdLoadImports(PIMPORT_CTX ctx, PIMAGE_IMPORT_DESCRIPTOR pidImportDescriptor, LPVOID lpImgBase) {
 	LPCSTR strLibName;
-	HMODULE hLibrary;
+	PVOID hLibrary;
+	PIMAGE_THUNK_DATA tLookupThunk;
 	PIMAGE_THUNK_DATA tThunk;
+	ANSI_STRING AnsString;
+	UNICODE_STRING ucString;
+
+	// HERE IMPLZEROMEMORY2 <-------------------------------------------------------------------------------
 
 	if (pidImportDescriptor->Name == '\0') {
 		return;
 	}
+	
+	RtlInitAnsiString(&AnsString, (LPCSTR)pidImportDescriptor->Name + (DWORD_PTR)lpImgBase); // <------------- MY VERSION OF INITANSISTRING HERE PLS
 
-	strLibName = (LPCSTR)pidImportDescriptor->Name + (DWORD_PTR)lpImgBase;
-	hLibrary = LoadLibraryA(strLibName);
+	ctx->status = ctx->pdRtlAnsiStringToUnicodeString(&ucString, &AnsString, TRUE);
+	if (ctx->status != STATUS_SUCCESS) {
+		return;
+	}
+
+	ctx->status = ctx->pdLdrLoadDll(0, 0, &ucString, &hLibrary);
+	if (ctx->status != STATUS_SUCCESS) {
+		return;
+	}
 
 	if (hLibrary) {
 		tThunk = (PIMAGE_THUNK_DATA)((DWORD_PTR)lpImgBase + pidImportDescriptor->FirstThunk);
-		pdImportFunction(lpImgBase, hLibrary, tThunk);
+		tLookupThunk = (PIMAGE_THUNK_DATA)((DWORD_PTR)lpImgBase + pidImportDescriptor->OriginalFirstThunk);
+		pdImportFunction(ctx, lpImgBase, hLibrary, tThunk, tLookupThunk);
 	}
 
 
-	return pdLoadImports(pidImportDescriptor++, lpImgBase);
+	return pdLoadImports(ctx, pidImportDescriptor++, lpImgBase);
 }

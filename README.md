@@ -25,11 +25,10 @@ And here we are.
 
 - [x] Implement Hash algorithm
 - [ ] Implement API-Hashing
-    - [ ] Add NT-definitions
+    - [x] Add NT-definitions
     - [x] Resolve Functions using PEB
     - [ ] Use NtCreateSection + NtMapViewOfSection instead of VirtualAlloc
 - [ ] MAKE SURE TO TEST RAHHHHHHHHHHHHHH
-- [ ] Hide current thread from debugger
 
 Later...
 - [ ] Test against Elastic????

